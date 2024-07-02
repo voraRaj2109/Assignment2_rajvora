@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Random Gallery</title>
+</head>
+<body>
+  <h1>Random Gallery</h1>
+  <p>Total images available: <span id="total-images">0</span></p>
+  <label for="num-images">Number of images to display:</label>
+  <input type="number" id="num-images" name="num-images" min="1" value="1">
+  <button id="fetch-images">Fetch Images</button>
+  <div id="gallery"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("/total-images")
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("total-images").textContent = data.total;
+        })
+        .catch(error => console.error("Error fetching total images:", error));
+
+      document.getElementById("fetch-images").addEventListener("click", () => {
+        const numImages = document.getElementById("num-images").value;
+        fetch(`/fetch-random-images?num=${numImages}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Invalid number of images.");
+            }
+            return response.json();
+          })
+          .then(data => {
+            const gallery = document.getElementById("gallery");
+            gallery.innerHTML = "";
+            data.forEach(file => {
+              const img = document.createElement("img");
+              img.src = `data:image/jpeg;base64,${file.content}`;
+              img.alt = file.name;
+              img.width = 200;
+              gallery.appendChild(img);
+            });
+          })
+          .catch(error => {
+            console.error("Error fetching images:", error);
+            alert("Invalid number of images.");
+          });
+      });
+    });
+  </script>
+</body>
+</html>
